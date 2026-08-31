@@ -2,10 +2,9 @@ node_modules
 test_configuration.json
 token.json
 cypress.env.json
-**/output/reports
-**/output/screenshots
-**/output/videos
-**/output/screenshots
+/reports
+/videos
+/screenshots
 **/output/logs
 **/downloads
 .vscode/settings.json

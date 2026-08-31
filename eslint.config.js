@@ -3,6 +3,7 @@ const tseslint = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
 const cypressPlugin = require('eslint-plugin-cypress');
 const prettierConfig = require('eslint-config-prettier');
+import chaiFriendly from 'eslint-plugin-chai-friendly';
 
 module.exports = [
   {
@@ -30,12 +31,15 @@ module.exports = [
     },
     plugins: {
       '@typescript-eslint': tseslint,
+      'chai-friendly': chaiFriendly,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
     },
   },
+  chaiFriendly.configs.recommended,
   prettierConfig,
 ];

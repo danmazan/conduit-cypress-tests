@@ -1,0 +1,32 @@
+{
+  "poolUser1": {
+    "username": "cypressPoolUser1",
+    "email": "cypress-qa-pool1@example.com",
+    "password": "CypressPool1!Aa",
+    "role": "main actor - login, comments, favorites author"
+  },
+  "poolUser2": {
+    "username": "cypressPoolUser2",
+    "email": "cypress-qa-pool2@example.com",
+    "password": "CypressPool2!Aa",
+    "role": "other user - follow target, comments on poolUser1 articles"
+  },
+  "poolUser3": {
+    "username": "cypressPoolUser3",
+    "email": "cypress-qa-pool3@example.com",
+    "password": "CypressPool3!Aa",
+    "role": "duplicate-collision target for register negative tests only"
+  },
+  "poolUser4": {
+    "username": "cypressPoolUser4",
+    "email": "cypress-qa-pool4@example.com",
+    "password": "CypressPool4!Aa",
+    "role": "spare author - multi-author feed/pagination scenarios"
+  },
+  "poolUser5": {
+    "username": "cypressPoolUser5",
+    "email": "cypress-qa-pool5@example.com",
+    "password": "CypressPool5!Aa",
+    "role": "spare/buffer"
+  }
+}
