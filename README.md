@@ -115,8 +115,8 @@ npm run format
 - [x] Project scaffolding, TypeScript config, folder structure
 - [x] Mochawesome HTML reporting pipeline
 - [x] ESLint + Prettier
-- [ ] Test strategy doc (flow coverage, UI vs API split, naming conventions)
-- [ ] Custom commands: `cy.apiRegister()`, `cy.apiLogin()`, `cy.loginBySession()`
+- [x] Test strategy doc (flow coverage, UI vs API split, naming conventions)
+- [x] Custom commands: `cy.apiRegister()`, `cy.apiLogin()`, `cy.loginBySession()`
 - [ ] UI test suite: registration, login, article CRUD, comments, favorites, follow/feed
 - [ ] API test suite: same flows, API-level
 - [ ] GitHub Actions CI pipeline
