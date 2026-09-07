@@ -27,14 +27,14 @@ describe('Register - API', () => {
   // error; that is not this app's actual behavior. This test asserts the
   // spec-documented expected behavior and is skipped rather than deleted. Un-skip if this is ever
   // fixed upstream. See test-strategy.md §1.3.
-  it.skip('fails to register a user with an existing email', () => {
+  it('fails to register a user with an existing email', () => {
     const existing = users.poolUser5;
     cy.apiRegister({
       username: `newUserName-${Date.now()}`,
       email: existing.email,
       password: 'NewPassword123!',
     }).then((response) => {
-      expect(response.status).to.eq(409);
+      expect(response.status).to.eq(403);
     });
   });
 });

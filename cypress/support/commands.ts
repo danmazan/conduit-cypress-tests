@@ -25,6 +25,7 @@ declare global {
         }>
       >;
       loginBySession(user: ApiUser): Chainable<void>;
+      interceptApiToLocalhost(): Chainable<void>;
     }
   }
 }
@@ -49,6 +50,7 @@ Cypress.Commands.add('apiLogin', (user: ApiLoginCredentials) => {
 });
 
 Cypress.Commands.add('loginBySession', (user: ApiUser) => {
+  cy.interceptApiToLocalhost();
     cy.session(user.username, () => {
         cy.apiLogin({ email: user.email, password: user.password }).then((loginResponse) => {
             expect(loginResponse.status, 'apiLogin status during loginBySession setup').to.eq(200);
@@ -59,14 +61,34 @@ Cypress.Commands.add('loginBySession', (user: ApiUser) => {
             });
         });
     },{
-        validate:() => {
-            cy.window().then((win) => {
-                expect(win.localStorage.getItem('jwtToken'), 'jwtToken exists in localStorage').to.be.a('string').and.not.be.empty;
-            });
-        }
+        validate: () => {
+        // Presence in localStorage isn't enough — it could be a stale token
+        // left over from a previous backend/database state. Confirm the
+        // backend actually still accepts it.
+        cy.window().then((win) => {
+          const token = win.localStorage.getItem('jwtToken');
+          expect(token, 'jwtToken present in localStorage').to.exist;
+ 
+          cy.request({
+            method: 'GET',
+            url: `${Cypress.env('apiUrl')}/user`,
+            headers: { Authorization: `Token ${token}` },
+            failOnStatusCode: false,
+          }).then((response) => {
+            expect(response.status, 'cached token still valid against backend').to.eq(200);
+          });
+        });
+      }
 
     });
     // cy.session restores storage but doesn't navigate — visit (again) so the
   // app actually boots and reads the token, rendering as logged in.
     cy.visit('/');
+});
+
+Cypress.Commands.add('interceptApiToLocalhost', () => {
+  const localOrigin = Cypress.env('apiUrl').replace(/\/api\/?$/, '');
+  cy.intercept('GET', 'https://api.realworld.show/api/**', (req) => {
+    req.url = req.url.replace('https://api.realworld.show', localOrigin);
+  }).as('redirectedApiCall');
 });

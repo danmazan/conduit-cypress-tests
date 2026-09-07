@@ -16,6 +16,6 @@ export default defineConfig({
     },
   },
   env: {
-    apiUrl: "https://api.realworld.show/api",
+    apiUrl: "http://localhost:4000/api",
   }
 });
