@@ -6,6 +6,27 @@ export interface ApiUser {
   password: string;
 }
 
+interface ApiUserResponse {
+  username: string;
+  email: string;
+  token: string;
+  bio: string | null;
+  image: string | null;
+}
+
+interface ApiValidationError {
+  dataPath?: string;
+  keyword?: string;
+  message?: string;
+  params?: Record<string, unknown>;
+  schemaPath?: string;
+}
+
+interface ApiErrors {
+  body?: ApiValidationError[];
+  [key: string]: unknown;
+}
+
 export interface ApiLoginCredentials {
   email: string;
   password: string;
@@ -16,12 +37,14 @@ declare global {
     interface Chainable {
       apiRegister(user: ApiUser): Chainable<
         Cypress.Response<{
-          user: ApiUser & { token: string; bio: string | null; image: string | null };
+          user: ApiUserResponse;
+          errors?: ApiErrors;
         }>
       >;
       apiLogin(user: ApiLoginCredentials): Chainable<
         Cypress.Response<{
-          user: ApiUser & { token: string; bio: string | null; image: string | null };
+          user: ApiUserResponse;
+          errors?: ApiErrors;
         }>
       >;
       loginBySession(user: ApiUser): Chainable<void>;
@@ -51,24 +74,27 @@ Cypress.Commands.add('apiLogin', (user: ApiLoginCredentials) => {
 
 Cypress.Commands.add('loginBySession', (user: ApiUser) => {
   cy.interceptApiToLocalhost();
-    cy.session(user.username, () => {
-        cy.apiLogin({ email: user.email, password: user.password }).then((loginResponse) => {
-            expect(loginResponse.status, 'apiLogin status during loginBySession setup').to.eq(200);
-            const token = loginResponse.body.user.token;
-            cy.visit('/');
-            cy.window().then((win) => {
-                win.localStorage.setItem('jwtToken', token);
-            });
+  cy.session(
+    user.username,
+    () => {
+      cy.apiLogin({ email: user.email, password: user.password }).then((loginResponse) => {
+        expect(loginResponse.status, 'apiLogin status during loginBySession setup').to.eq(200);
+        const token = loginResponse.body.user.token;
+        cy.visit('/');
+        cy.window().then((win) => {
+          win.localStorage.setItem('jwtToken', token);
         });
-    },{
-        validate: () => {
+      });
+    },
+    {
+      validate: () => {
         // Presence in localStorage isn't enough — it could be a stale token
         // left over from a previous backend/database state. Confirm the
         // backend actually still accepts it.
         cy.window().then((win) => {
           const token = win.localStorage.getItem('jwtToken');
           expect(token, 'jwtToken present in localStorage').to.exist;
- 
+
           cy.request({
             method: 'GET',
             url: `${Cypress.env('apiUrl')}/user`,
@@ -78,12 +104,12 @@ Cypress.Commands.add('loginBySession', (user: ApiUser) => {
             expect(response.status, 'cached token still valid against backend').to.eq(200);
           });
         });
-      }
-
-    });
-    // cy.session restores storage but doesn't navigate — visit (again) so the
+      },
+    }
+  );
+  // cy.session restores storage but doesn't navigate — visit (again) so the
   // app actually boots and reads the token, rendering as logged in.
-    cy.visit('/');
+  cy.visit('/');
 });
 
 Cypress.Commands.add('interceptApiToLocalhost', () => {
