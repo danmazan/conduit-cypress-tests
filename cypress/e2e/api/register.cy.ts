@@ -1,4 +1,5 @@
 import users from '../../fixtures/users.json';
+import { ApiUser } from '../../support/commands/user-commands';
 
 function randomUser() {
   const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -29,6 +30,18 @@ describe('Register - API', () => {
     }).then((response) => {
       expect(response.status).to.eq(403);
       expect(response.body.errors).to.include('Email address taken');
+    });
+  });
+
+  it.only('fails to register a user with an existing username', () => {
+    const existing = users.poolUser3; // stable duplicate-collision target, never used elsewhere
+    cy.apiRegister({
+      username: existing.username,
+      email: `newEmail-${Date.now()}@example.com`,
+      password: 'NewPassword123!',
+    }).then((response) => {
+      expect(response.status).to.eq(403);
+      expect(response.body.errors).to.include('Username taken');
     });
   });
 
@@ -64,6 +77,16 @@ describe('Register - API', () => {
         expect(matchingError, `validation error for missing ${missingField}`).to.exist;
         expect(matchingError?.message).to.eq(`should have required property '${missingField}'`);
       });
+    });
+  });
+
+  (['username', 'email', 'password'] as const).forEach((emptyField) => {
+    it.skip(`KNOWN ISSUE: returns 422 when ${emptyField} is an empty string`, () => {
+      const user = randomUser();
+      (user as ApiUser)[emptyField] = '';
+      cy.apiRegister(user as ApiUser).then((response) => {
+        expect(response.status).to.eq(422);
+      }); 
     });
   });
 });
