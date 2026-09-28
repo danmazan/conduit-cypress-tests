@@ -114,7 +114,7 @@ Cypress.Commands.add('loginBySession', (user: ApiUser) => {
 
 Cypress.Commands.add('interceptApiToLocalhost', () => {
   const localOrigin = Cypress.env('apiUrl').replace(/\/api\/?$/, '');
-  cy.intercept('GET', 'https://api.realworld.show/api/**', (req) => {
+  cy.intercept('https://api.realworld.show/api/**', (req) => {
     req.url = req.url.replace('https://api.realworld.show', localOrigin);
   }).as('redirectedApiCall');
 });

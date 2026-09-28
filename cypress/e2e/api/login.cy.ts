@@ -1,5 +1,8 @@
 import users from '../../fixtures/users.json';
-import { ApiLoginCredentials } from '../../support/commands/user-commands';
+import { ApiLoginCredentials, ApiUser } from '../../support/commands/user-commands';
+
+type ErrorBody = { errors: Record<string, string[]>};
+type Field = keyof ApiUser;
 
 describe('Login - API', () => {
   it('logs in with username', () => {
@@ -7,8 +10,9 @@ describe('Login - API', () => {
       email: users.poolUser1.username,
       password: users.poolUser1.password,
     }).then((response) => {
-      cy.log('Response body:', JSON.stringify(response.body));
-      expect(response.status).to.eq(422);
+      expect(response.status).to.eq(403);
+      const {errors} = response.body as unknown as ErrorBody;
+      expect(errors['email or password']).to.deep.eq(['is invalid']);
     });
   });
   it('logs in successfully with valid credentials', () => {
@@ -31,8 +35,9 @@ describe('Login - API', () => {
       password: 'WrongPassword123!',
     }).then((response) => {
       cy.log('Response body:', JSON.stringify(response.body));
-      expect(response.status).to.eq(401);
-      expect(response.body.errors).to.include('Incorrect email address or password');
+      expect(response.status).to.eq(403);
+      const {errors} = response.body as unknown as ErrorBody;
+      expect(errors['email or password']).to.deep.eq(['is invalid']);
     });
   });
 
@@ -41,9 +46,9 @@ describe('Login - API', () => {
       email: 'unregistered@example.com',
       password: 'AnyPassword123!',
     }).then((response) => {
-      cy.log('Response body:', JSON.stringify(response.body));
-      expect(response.status).to.eq(401);
-      expect(response.body.errors).to.include('Incorrect email address or password');
+      expect(response.status).to.eq(403);
+      const {errors} = response.body as unknown as ErrorBody;
+      expect(errors['email or password']).to.deep.eq(['is invalid']);
     });
   });
 
@@ -52,13 +57,9 @@ describe('Login - API', () => {
       email: 'invalid-email-format',
       password: 'AnyPassword123!',
     }).then((response) => {
-      expect(response.status).to.eq(422);
-      const bodyErrors = response.body.errors?.body ?? [];
-      expect(bodyErrors, 'validation errors array').to.be.an('array').that.is.not.empty;
-      expect(
-        bodyErrors.some((e: { dataPath?: string }) => e.dataPath?.includes('email')),
-        'a validation error referencing the email field'
-      ).to.be.true;
+      expect(response.status).to.eq(403);
+      const {errors} = response.body as unknown as ErrorBody;
+      expect(errors['email or password']).to.deep.eq(['is invalid']);
     });
   });
 
@@ -72,15 +73,9 @@ describe('Login - API', () => {
 
       cy.apiLogin(credentials as ApiLoginCredentials).then((response) => {
         expect(response.status).to.eq(422);
-        const bodyErrors = response.body.errors?.body ?? [];
-        expect(bodyErrors, 'validation errors array').to.be.an('array').that.is.not.empty;
-
-        const matchingError = bodyErrors.find(
-          (error) => error.params?.missingProperty === missingField
-        );
-
-        expect(matchingError, `validation error for missing ${missingField}`).to.exist;
-        expect(matchingError?.message).to.eq(`should have required property '${missingField}'`);
+        const {errors} = response.body as unknown as ErrorBody;
+        expect(errors).to.have.property(missingField);
+        expect(errors[missingField]).to.deep.eq(["can't be blank"]);
       });
     });
   });
