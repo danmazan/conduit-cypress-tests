@@ -29,7 +29,7 @@ describe('Login - API', () => {
     });
   });
 
-  it('returns 401 when the password is incorrect', () => {
+  it('returns 403 when the password is incorrect', () => {
     cy.apiLogin({
       email: users.poolUser1.email,
       password: 'WrongPassword123!',
@@ -41,7 +41,7 @@ describe('Login - API', () => {
     });
   });
 
-  it('returns 401 when the email is not registered', () => {
+  it('returns 403 when the email is not registered', () => {
     cy.apiLogin({
       email: 'unregistered@example.com',
       password: 'AnyPassword123!',
@@ -52,7 +52,7 @@ describe('Login - API', () => {
     });
   });
 
-  it('returns 422 when the email format is invalid', () => {
+  it('returns 403 when the email format is invalid', () => {
     cy.apiLogin({
       email: 'invalid-email-format',
       password: 'AnyPassword123!',
