@@ -53,6 +53,22 @@ declare global {
   }
 }
 
+// Tokens are cached per spec run so API setup/teardown doesn't log in on every call.
+const tokenCache = new Map<string, string>();
+
+// Authorization header for API setup/teardown commands acting as `user`.
+export function authHeaders(user: ApiLoginCredentials): Cypress.Chainable<Record<string, string>> {
+  const cached = tokenCache.get(user.email);
+  if (cached) {
+    return cy.wrap<Record<string, string>>({ Authorization: `Token ${cached}` }, { log: false });
+  }
+  return cy.apiLogin({ email: user.email, password: user.password }).then((response) => {
+    expect(response.status, `apiLogin status for ${user.email}`).to.eq(200);
+    tokenCache.set(user.email, response.body.user.token);
+    return { Authorization: `Token ${response.body.user.token}` } as Record<string, string>;
+  });
+}
+
 // failOnStatuseCode set to false to test negative scenarios like duplicate user registration
 Cypress.Commands.add('apiRegister', (user: ApiUser) => {
   cy.request({

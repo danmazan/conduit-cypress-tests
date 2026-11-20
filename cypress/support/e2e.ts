@@ -15,3 +15,12 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands/user-commands';
+import './commands/article-commands';
+import './commands/profile-commands';
+
+// Deletes every article created via apiCreateArticle (or tracked by a spec)
+// during the test. Runs after spec-level afterEach hooks; fails loudly listing
+// any article that couldn't be deleted.
+afterEach(() => {
+  cy.apiDeleteTrackedArticles();
+});
